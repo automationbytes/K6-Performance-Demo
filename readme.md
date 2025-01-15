@@ -2,16 +2,6 @@
 
 This project contains a set of performance tests for the Coffee API hosted at `https://webservice.toscacloud.com/api/v1/Coffees`. The tests are implemented using K6, a modern load testing tool that provides a powerful scripting environment for performance testing.
 
-## Table of Contents
-
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Running the Tests](#running-the-tests)
-- [Test Scenarios](#test-scenarios)
-- [Metrics and Thresholds](#metrics-and-thresholds)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Features
 
 - Load Testing
