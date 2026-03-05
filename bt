@@ -1,0 +1,7 @@
+@echo off
+:loop
+echo Starting SSH tunnel...
+plink -L 5433:localhost:5432 appadmintemp@10.83.157.99 -N -pw x!NGaLqHge40
+echo Tunnel dropped! Reconnecting in 5 seconds...
+timeout /t 5
+goto loop
