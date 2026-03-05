@@ -1,13 +1,15 @@
+import org.apache.jmeter.protocol.jdbc.config.DataSourceElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 log.info("Inserting JMeter result into PostgreSQL");
 
 try {
-    Connection conn = vars.getObject("dbConnection");
+    // Get connection differently for BeanShell
+    Connection conn = DataSourceElement.getConnection("dbConnection");
 
     if (conn == null) {
-        log.error("DB Connection is null! Check JDBC Config.");
+        log.error("DB Connection is null!");
         return;
     }
 
@@ -23,9 +25,11 @@ try {
     stmt.setInt    (2,  (int) sampleResult.getTime());
     stmt.setString (3,  sampleResult.getSampleLabel());
     stmt.setString (4,  sampleResult.getResponseCode());
-    stmt.setString (5,  sampleResult.getResponseMessage() != null ?
-                        sampleResult.getResponseMessage().substring(0,
-                        Math.min(255, sampleResult.getResponseMessage().length())) : "");
+
+    String respMsg = sampleResult.getResponseMessage();
+    stmt.setString (5,  respMsg != null ?
+                    respMsg.substring(0, Math.min(255, respMsg.length())) : "");
+
     stmt.setString (6,  sampleResult.getThreadName());
     stmt.setBoolean(7,  sampleResult.isSuccessful());
     stmt.setInt    (8,  (int) sampleResult.getBytesAsLong());
@@ -36,6 +40,7 @@ try {
     stmt.setInt    (13, (int) sampleResult.getConnectTime());
     stmt.executeUpdate();
     stmt.close();
+    conn.close();
 
     log.info("Row inserted: " + sampleResult.getSampleLabel());
 
