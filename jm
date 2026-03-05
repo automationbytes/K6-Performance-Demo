@@ -1,43 +1,44 @@
-import java.sql.*
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
-log.info("Attempting to insert JMeter result into PostgreSQL")
+log.info("Inserting JMeter result into PostgreSQL");
 
 try {
-    def conn = vars.getObject("dbConnection")
+    Connection conn = vars.getObject("dbConnection");
 
     if (conn == null) {
-        log.error("DB Connection is null! Check JDBC Config.")
-        return
+        log.error("DB Connection is null! Check JDBC Config.");
+        return;
     }
 
-    def sql = """
-        INSERT INTO "PerformanceTestResults".jmeter_results
-            (timestamp, elapsed, label, response_code,
-             response_message, thread_name, success,
-             bytes, sent_bytes, grp_threads, all_threads,
-             latency, connect)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """
+    String sql = "INSERT INTO \"PerformanceTestResults\".jmeter_results " +
+                 "(timestamp, elapsed, label, response_code, " +
+                 "response_message, thread_name, success, " +
+                 "bytes, sent_bytes, grp_threads, all_threads, " +
+                 "latency, connect) " +
+                 "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-    def stmt = conn.prepareStatement(sql)
-    stmt.setLong   (1,  sampleResult.getStartTime())
-    stmt.setInt    (2,  (int) sampleResult.getTime())
-    stmt.setString (3,  sampleResult.getSampleLabel())
-    stmt.setString (4,  sampleResult.getResponseCode())
-    stmt.setString (5,  sampleResult.getResponseMessage()?.take(255))
-    stmt.setString (6,  sampleResult.getThreadName())
-    stmt.setBoolean(7,  sampleResult.isSuccessful())
-    stmt.setInt    (8,  (int) sampleResult.getBytesAsLong())
-    stmt.setInt    (9,  (int) sampleResult.getSentBytes())
-    stmt.setInt    (10, sampleResult.getGroupThreads())
-    stmt.setInt    (11, sampleResult.getAllThreads())
-    stmt.setInt    (12, (int) sampleResult.getLatency())
-    stmt.setInt    (13, (int) sampleResult.getConnectTime())
-    stmt.executeUpdate()
-    stmt.close()
+    PreparedStatement stmt = conn.prepareStatement(sql);
+    stmt.setLong   (1,  sampleResult.getStartTime());
+    stmt.setInt    (2,  (int) sampleResult.getTime());
+    stmt.setString (3,  sampleResult.getSampleLabel());
+    stmt.setString (4,  sampleResult.getResponseCode());
+    stmt.setString (5,  sampleResult.getResponseMessage() != null ?
+                        sampleResult.getResponseMessage().substring(0,
+                        Math.min(255, sampleResult.getResponseMessage().length())) : "");
+    stmt.setString (6,  sampleResult.getThreadName());
+    stmt.setBoolean(7,  sampleResult.isSuccessful());
+    stmt.setInt    (8,  (int) sampleResult.getBytesAsLong());
+    stmt.setInt    (9,  (int) sampleResult.getSentBytes());
+    stmt.setInt    (10, sampleResult.getGroupThreads());
+    stmt.setInt    (11, sampleResult.getAllThreads());
+    stmt.setInt    (12, (int) sampleResult.getLatency());
+    stmt.setInt    (13, (int) sampleResult.getConnectTime());
+    stmt.executeUpdate();
+    stmt.close();
 
-    log.info("Row inserted for: " + sampleResult.getSampleLabel())
+    log.info("Row inserted: " + sampleResult.getSampleLabel());
 
 } catch (Exception e) {
-    log.error("Error writing to PostgreSQL: " + e.getMessage())
+    log.error("Error: " + e.getMessage());
 }
